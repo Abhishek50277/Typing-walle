@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Wallah - Online Typing Test & Tutor in English</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tesseract.js for In-Browser OCR Picture Text Recognition -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            twNavy: '#0d2238',
+            twNavyDark: '#081624',
+            twNavyLight: '#183654',
+            twSaffron: '#ff7b00',
+            twGold: '#f59e0b',
+            twBlue: '#2563eb',
+            twGreen: '#16a34a',
+            twRed: '#dc2626',
+            twBg: '#f8fafc',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"Roboto Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #f1f5f9; }
+    .word { display: inline-block; margin-right: 0.45rem; padding: 2px 4px; border-radius: 3px; }
+    .word-active { background-color: #fef08a; border-bottom: 2px solid #ca8a04; }
+    .word-correct { color: #16a34a; }
+    .word-full-error { background-color: #fee2e2; color: #dc2626; text-decoration: line-through; }
+    .word-half-error { background-color: #dbeafe; color: #1d4ed8; text-decoration: underline; }
+    .word-pending { color: #475569; }
+    .no-select { -webkit-user-select: none; user-select: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-cert, #printable-cert * { visibility: visible; }
+      #printable-cert { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-twNavy text-white shadow-md border-b-4 border-twSaffron">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="location.reload()">
+        <div class="w-10 h-10 rounded-lg bg-twSaffron flex items-center justify-center font-extrabold text-white text-xl shadow-inner">
+          TW
+        </div>
+        <div>
+          <span class="text-2xl font-black tracking-tight text-white">TYPING<span class="text-twSaffron">WALLAH</span></span>
+          <span class="text-xs block text-slate-300 font-medium">India's Premier Typing Exam Software</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs md:text-sm">
+        <span class="bg-slate-800 px-3 py-1.5 rounded text-slate-300 font-mono flex items-center gap-1.5 border border-slate-700">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> SSC / RRB / CPCT Exam Verified
+        </span>
+        <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-1.5 bg-twNavyLight hover:bg-slate-700 text-slate-200 rounded text-xs flex items-center gap-1.5 border border-slate-700 transition">
+          <i id="soundIcon" data-lucide="volume-2" class="w-4 h-4 text-twSaffron"></i> Sound: ON
+        </button>
+      </div>
+    </div>
+    
+    <!-- SUB-NAV -->
+    <nav class="bg-twNavyDark text-xs text-slate-300 border-t border-slate-800 px-4">
+      <div class="max-w-7xl mx-auto flex items-center overflow-x-auto space-x-6 py-2 scrollbar-none">
+        <a href="#" class="hover:text-twSaffron font-semibold text-white">Home</a>
+        <a href="#" class="hover:text-twSaffron">English Typing Tutor</a>
+        <a href="#" class="hover:text-twSaffron font-semibold text-twSaffron">English Typing Test</a>
+        <a href="#" class="hover:text-twSaffron">Hindi Typing Test (Mangal/Kruti)</a>
+        <a href="#" class="hover:text-twSaffron">Government Rules (SSC/Court)</a>
+        <a href="#" class="hover:text-twSaffron">Typing Games</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+    
+    <!-- BREADCRUMB -->
+    <div class="text-xs text-slate-500 mb-4 flex items-center space-x-2">
+      <span>Home</span>
+      <span>/</span>
+      <span>Typing Test</span>
+      <span>/</span>
+      <span class="font-medium text-slate-700">English Typing Test [With Image OCR Scanner]</span>
+    </div>
+
+    <!-- VIEW 1: CONFIGURATION SCREEN -->
+    <section id="config-screen" class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden mb-6">
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <h1 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="keyboard" class="w-5 h-5 text-twSaffron"></i>
+          Online English Typing Test Setup
+        </h1>
+        <span class="text-xs bg-twSaffron/10 text-twSaffron px-2.5 py-1 rounded-full font-bold">Standard 5 Key-Depression Format</span>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Left Column: User & Test Settings -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Candidate Name</label>
+            <input type="text" id="candidateName" placeholder="Enter Your Name (e.g., Rahul Sharma)" 
+                   class="w-full px-3.5 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-twNavy text-sm font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Select Test Duration</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" onclick="selectDuration(0.5, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">30 Secs</button>
+              <button type="button" onclick="selectDuration(1, this)" class="dur-btn active-dur px-3 py-2 text-xs font-semibold rounded border border-twSaffron bg-orange-50 text-twSaffron transition">1 Minute</button>
+              <button type="button" onclick="selectDuration(2, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">2 Minutes</button>
+              <button type="button" onclick="selectDuration(5, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">5 Minutes</button>
+              <button type="button" onclick="selectDuration(10, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">10 Minutes</button>
+              <button type="button" onclick="selectDuration(15, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">15 Minutes</button>
+            </div>
+          </div>
+
+          <!-- Exam vs Practice Controls -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+            <span class="text-xs font-bold text-slate-600 block">EXAM RIGOR & ASSISTANCE</span>
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-700">Backspace Key:</span>
+              <div class="flex gap-2">
+                <button type="button" id="btn-backspace-en" onclick="setBackspace(true)" class="px-2.5 py-1 text-xs rounded bg-emerald-600 text-white font-bold">Enabled</button>
+                <button type="button" id="btn-backspace-dis" onclick="setBackspace(false)" class="px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium">Disabled (Exam)</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-700">Highlight & Auto-Scroll:</span>
+              <div class="flex gap-2">
+                <button type="button" id="btn-highlight-en" onclick="setHighlight(true)" class="px-2.5 py-1 text-xs rounded bg-twNavy text-white font-bold">Enabled</button>
+                <button type="button" id="btn-highlight-dis" onclick="setHighlight(false)" class="px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium">Disabled</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Paragraph Selection & Picture OCR -->
+        <div class="space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Select Paragraph Source</label>
+              <span class="text-[11px] text-twBlue font-semibold cursor-pointer" onclick="openOcrModal()">
+                📷 Extract from Picture (OCR)
+              </span>
+            </div>
+            <div class="flex gap-2 mb-2">
+              <button type="button" id="tab-default-p" onclick="switchParagraphTab('default')" class="flex-1 py-1.5 text-xs font-bold rounded bg-twNavy text-white">Default Passages</button>
+              <button type="button" id="tab-custom-p" onclick="switchParagraphTab('custom')" class="flex-1 py-1.5 text-xs font-medium rounded bg-slate-200 text-slate-700 hover:bg-slate-300">Custom / Picture Text</button>
+            </div>
+
+            <!-- Default Paragraphs Dropdown -->
+            <div id="default-passages-wrap">
+              <select id="defaultPassageSelect" onchange="loadSelectedPassage()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-twNavy">
+                <option value="utopia">Thomas More - Utopia (Classic English Literature)</option>
+                <option value="philosophy">Bertrand Russell - The Problems of Philosophy</option>
+                <option value="dostoevsky">Fyodor Dostoevsky - Crime and Punishment Passage</option>
+                <option value="mobydick">Herman Melville - Moby Dick (Maritime Excerpt)</option>
+                <option value="techcloud">Modern Essay - Cloud Computing & Artificial Intelligence</option>
+              </select>
+            </div>
+
+            <!-- Custom / OCR Paragraph Box -->
+            <div id="custom-passages-wrap" class="hidden">
+              <textarea id="customPassageText" rows="4" placeholder="Type or paste your own custom text here, or click 'Upload Text by Picture' below to scan a photo..."
+                        class="w-full p-2.5 border border-slate-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-twNavy"></textarea>
+            </div>
+          </div>
+
+          <!-- Big Action Button for OCR -->
+          <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3 text-center">
+            <p class="text-xs font-semibold text-slate-700 mb-2">Got a printed test paper, book, or screenshot?</p>
+            <button type="button" onclick="openOcrModal()" class="w-full py-2 bg-twSaffron hover:bg-orange-600 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-sm transition">
+              <i data-lucide="camera" class="w-4 h-4"></i> Upload Text by Picture (In-Browser OCR)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap gap-3 items-center justify-between">
+        <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+          <i data-lucide="info" class="w-4 h-4 text-twBlue"></i> Timer will begin as soon as you press the first key.
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="startTypingApp(false)" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5">
+            <i data-lucide="play" class="w-4 h-4"></i> Practice Mode
+          </button>
+          <button type="button" onclick="startTypingApp(true)" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow transition flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4"></i> Start In Exam Mode
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: ACTIVE TYPING TEST ARENA (HIDDEN INITIALLY) -->
+    <section id="arena-screen" class="hidden space-y-4">
+      
+      <!-- Metrics Dashboard -->
+      <div class="bg-twNavy text-white rounded-xl p-4 shadow flex flex-wrap items-center justify-between gap-4 border border-slate-700">
+        <div class="flex items-center space-x-3">
+          <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+          <div>
+            <span class="text-xs text-slate-400 font-bold block uppercase tracking-wider">Candidate</span>
+            <span id="activeCandidateName" class="font-bold text-sm text-white">Candidate</span>
+          </div>
+          <span id="examModeBadge" class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-600">Exam Mode</span>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Time Left</span>
+            <span id="timerDisplay" class="font-mono text-2xl font-black text-twSaffron">01:00</span>
+          </div>
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Gross Speed</span>
+            <span class="font-mono text-2xl font-black text-white"><span id="grossWpmLive">0</span> <span class="text-xs font-normal text-slate-400">WPM</span></span>
+          </div>
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Accuracy</span>
+            <span class="font-mono text-2xl font-black text-emerald-400"><span id="accuracyLive">100</span><span class="text-xs font-normal">%</span></span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="resetTest()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs font-semibold flex items-center gap-1 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restart
+          </button>
+          <button onclick="submitTestEarly()" class="px-4 py-1.5 bg-twRed hover:bg-red-700 text-white rounded text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Submit Test
+          </button>
+        </div>
+      </div>
+
+      <!-- Passage Display Window -->
+      <div class="bg-white border-2 border-slate-300 rounded-xl shadow-sm overflow-hidden">
+        <div class="bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs font-medium text-slate-600">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-4 h-4 text-twNavy"></i> Target Passage (Type word-by-word)
+          </span>
+          <span id="wordsProgress" class="font-mono font-bold text-slate-700">Word 1 of 350</span>
+        </div>
+
+        <div id="passageContainer" class="p-5 font-mono text-base md:text-lg leading-relaxed max-h-56 overflow-y-auto no-select bg-white scroll-smooth" style="scroll-behavior: smooth;">
+          <!-- Words will be dynamically injected here -->
+        </div>
+      </div>
+
+      <!-- Interactive Typing Box -->
+      <div class="bg-white border-2 border-twNavy rounded-xl p-4 shadow-md">
+        <div class="flex items-center justify-between mb-2">
+          <label for="typingInput" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-4 h-4 text-twSaffron"></i> Type here and press <span class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 text-slate-800 font-mono">SPACE</span> to advance words:
+          </label>
+          <span id="backspaceStatus" class="text-[11px] font-bold text-emerald-600">Backspace: Active</span>
+        </div>
+        <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="Click here and start typing. Timer begins automatically..."
+               class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-lg font-mono focus:border-twNavy focus:ring-0 focus:outline-none bg-slate-50">
+      </div>
+    </section>
+
+    <!-- VIEW 3: TYPING WALLAH OFFICIAL RESULT & SCORECARD (HIDDEN INITIALLY) -->
+    <section id="result-screen" class="hidden space-y-6">
+      <div id="printable-cert" class="bg-white rounded-xl shadow-lg border border-slate-300 p-6 md:p-8 space-y-6 relative overflow-hidden">
+        
+        <!-- Watermark -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none text-9xl font-black uppercase text-twNavy">
+          TYPING WALLAH
+        </div>
+
+        <!-- Scorecard Header -->
+        <div class="border-b-2 border-twNavy pb-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-lg bg-twSaffron flex items-center justify-center font-extrabold text-white text-2xl">
+              TW
+            </div>
+            <div>
+              <h2 class="text-2xl font-black tracking-tight text-twNavy">TYPING<span class="text-twSaffron">WALLAH</span> SCORECARD</h2>
+              <p class="text-xs text-slate-500 font-medium">Standard Government Examination Speed & Accuracy Evaluation Report</p>
+            </div>
+          </div>
+          <div class="text-right text-xs text-slate-600">
+            <p><strong>Candidate:</strong> <span id="resCandidateName" class="text-twNavy font-bold">Rahul</span></p>
+            <p><strong>Date & Time:</strong> <span id="resTimestamp" class="font-mono">--</span></p>
+            <p><strong>Duration:</strong> <span id="resDuration" class="font-mono">1 Min</span></p>
+          </div>
+        </div>
+
+        <!-- Primary Highlight Numbers -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Net Typing Speed</span>
+            <div class="text-4xl font-black text-blue-900 font-mono my-1" id="resNetWpm">0</div>
+            <span class="text-[11px] text-blue-600 font-medium">Words Per Minute (NWPM)</span>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Gross Speed</span>
+            <div class="text-4xl font-black text-slate-800 font-mono my-1" id="resGrossWpm">0</div>
+            <span class="text-[11px] text-slate-500 font-medium">GWPM (Total Key Depressions / 5)</span>
+          </div>
+
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Accuracy</span>
+            <div class="text-4xl font-black text-emerald-800 font-mono my-1" id="resAccuracy">0%</div>
+            <span class="text-[11px] text-emerald-600 font-medium">Precision Rating</span>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider block">Govt Exam Result</span>
+            <div class="text-2xl font-black text-amber-900 my-2" id="resExamStatus">PASS</div>
+            <span class="text-[11px] text-amber-700 font-medium" id="resExamRule">Target: 35 WPM @ 95%</span>
+          </div>
+        </div>
+
+        <!-- FORMULA COMPARISON: METHOD 1 vs METHOD 2 (Official Govt Criteria) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          
+          <!-- Method 1: Standard Evaluation -->
+          <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+            <h3 class="text-xs font-black uppercase text-twNavy tracking-wider mb-3 flex items-center gap-1.5 border-b pb-1.5">
+              <i data-lucide="calculator" class="w-4 h-4 text-twSaffron"></i> Method 1: Standard Formula (M1)
+            </h3>
+            <div class="space-y-2 text-xs font-medium text-slate-700">
+              <div class="flex justify-between"><span>Total Typed Words:</span> <span id="m1TotalWords" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between"><span>Total Keystrokes / Depressions:</span> <span id="m1TotalKeystrokes" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between text-red-600"><span>Incorrect Words:</span> <span id="m1Errors" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between"><span>Backspace Key Count:</span> <span id="m1Backspaces" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between text-slate-500 text-[11px] pt-1 border-t"><span>Calculation:</span> <span>(Depressions / 5 - Errors) / Time</span></div>
+            </div>
+          </div>
+
+          <!-- Method 2: SSC / Court Exam Formula with 5% Mistake Allowance -->
+          <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+            <h3 class="text-xs font-black uppercase text-twNavy tracking-wider mb-3 flex items-center gap-1.5 border-b pb-1.5">
+              <i data-lucide="scale" class="w-4 h-4 text-twBlue"></i> Method 2: Govt Exam Formula (Full/Half Mistakes)
+            </h3>
+            <div class="space-y-2 text-xs font-medium text-slate-700">
+              <div class="flex justify-between text-red-600"><span>Full Mistakes (Omission / Addition):</span> <span id="m2FullMistakes" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between text-blue-600"><span>Half Mistakes (Spelling / Case / Space):</span> <span id="m2HalfMistakes" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between font-bold text-slate-900"><span>Equivalent Mistakes:</span> <span id="m2TotalMistakes" class="font-mono">0</span></div>
+              <div class="flex justify-between text-emerald-700"><span>5% Ignorable Mistake Limit:</span> <span id="m2Ignorable" class="font-mono font-bold">0</span></div>
+              <div class="flex justify-between font-black text-red-700 pt-1 border-t"><span>Net Penalty Deductions:</span> <span id="m2NetMistakes" class="font-mono">0</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Passage Review with Mistakes Highlighted -->
+        <div class="border border-slate-200 rounded-lg p-4 bg-white">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <span>Reviewed Passage:</span>
+            <span class="text-[11px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded">Red = Full Error</span>
+            <span class="text-[11px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">Blue = Half Error</span>
+            <span class="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Green = Correct</span>
+          </h4>
+          <div id="reviewedPassageBox" class="p-3 bg-slate-50 rounded border border-slate-200 text-xs font-mono leading-relaxed max-h-48 overflow-y-auto">
+            <!-- Reviewed words appear here -->
+          </div>
+        </div>
+
+        <!-- Certificate Signatures -->
+        <div class="pt-6 border-t border-slate-200 flex justify-between items-end text-xs text-slate-500">
+          <div>
+            <div class="h-8 border-b border-dashed border-slate-400 w-36 mb-1"></div>
+            <p>Candidate Signature</p>
+          </div>
+          <div class="text-center">
+            <div class="w-14 h-14 border-2 border-twSaffron rounded-full mx-auto flex items-center justify-center text-[9px] font-black text-twSaffron uppercase text-center leading-tight">
+              Typing Wallah<br>Verified
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="h-8 border-b border-dashed border-slate-400 w-36 mb-1 ml-auto"></div>
+            <p>Controller of Examination</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Result Action Bar (Non-Printable) -->
+      <div class="flex flex-wrap items-center justify-between gap-4 no-print">
+        <button onclick="resetTest()" class="px-6 py-2.5 bg-twNavy text-white font-bold text-xs rounded-lg hover:bg-slate-800 transition flex items-center gap-2 shadow">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Take Another Test
+        </button>
+        <div class="flex gap-3">
+          <button onclick="window.print()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg border border-slate-300 transition flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i> Print Scorecard
+          </button>
+          <button onclick="copyScorecard()" id="copyScoreBtn" class="px-5 py-2.5 bg-twSaffron hover:bg-orange-600 text-white font-bold text-xs rounded-lg transition flex items-center gap-2 shadow">
+            <i data-lucide="share-2" class="w-4 h-4"></i> Copy Summary
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KNOWLEDGE BASE & FORMULAS (Typing Baba Style Educational Content) -->
+    <section class="mt-10 bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-6 text-sm text-slate-700">
+      <div class="border-b border-slate-200 pb-3">
+        <h2 class="text-lg font-black text-twNavy">How Typing Speed & Mistakes are Calculated in India</h2>
+        <p class="text-xs text-slate-500">Official guidelines followed by SSC CGL/CHSL, Railway RRB NTPC, High Courts, and CPCT exams.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-bold text-twNavy text-sm mb-1.5 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-twSaffron"></span> Gross Words Per Minute (GWPM)
+          </h3>
+          <p class="text-xs leading-relaxed text-slate-600 mb-3">
+            In standard typing conventions, <strong>5 key depressions (keystrokes)</strong> are counted as one single word. Gross speed measures raw speed without deducting mistakes.
+          </p>
+          <div class="bg-slate-100 p-2 rounded text-xs font-mono text-slate-800 border-l-2 border-twNavy">
+            GWPM = (Total Character Keystrokes ÷ 5) ÷ Total Time in Minutes
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-twNavy text-sm mb-1.5 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Net Words Per Minute (NWPM)
+          </h3>
+          <p class="text-xs leading-relaxed text-slate-600 mb-3">
+            Net speed reflects accurate typing and penalizes wrong words typed within the given duration.
+          </p>
+          <div class="bg-slate-100 p-2 rounded text-xs font-mono text-slate-800 border-l-2 border-emerald-600">
+            NWPM = GWPM - (Total Error Words ÷ Total Time in Minutes)
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-twNavy text-sm mb-1.5 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-red-500"></span> Full Mistakes vs Half Mistakes
+          </h3>
+          <ul class="text-xs list-disc list-inside space-y-1 text-slate-600">
+            <li><strong>Full Mistakes (100% deduction):</strong> Omission of a word, addition of an unprovided word, or complete substitution.</li>
+            <li><strong>Half Mistakes (50% deduction):</strong> Spelling errors, improper uppercase/lowercase capitalization, or punctuation spacing flaws.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-twNavy text-sm mb-1.5 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-twBlue"></span> 5% Ignorable Mistakes Rule
+          </h3>
+          <p class="text-xs leading-relaxed text-slate-600">
+            Government recruitment commissions usually tolerate up to 5% errors of total words typed. Deductions are only applied to mistakes exceeding this 5% quota.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- OCR PICTURE SCANNER MODAL -->
+  <div id="ocrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-200">
+      
+      <div class="bg-twNavy px-6 py-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2 font-bold text-sm">
+          <i data-lucide="camera" class="w-4 h-4 text-twSaffron"></i>
+          <span>Upload Picture to Extract Text (Tesseract OCR)</span>
+        </div>
+        <button onclick="closeOcrModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-slate-600">
+          Snap a photo of your book, typing sheet, or question paper. The optical scanner will extract the text directly inside your browser so you can practice typing it.
+        </p>
+
+        <!-- Dropzone -->
+        <div id="ocrDropzone" onclick="document.getElementById('ocrFileInput').click()"
+             class="border-2 border-dashed border-slate-300 hover:border-twSaffron rounded-xl p-6 text-center cursor-pointer bg-slate-50 transition group">
+          <input type="file" id="ocrFileInput" accept="image/*" class="hidden" onchange="handleOcrImageSelect(event)">
+          <div class="w-12 h-12 rounded-full bg-orange-100 group-hover:bg-orange-200 text-twSaffron flex items-center justify-center mx-auto mb-2 transition">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <p class="text-xs font-bold text-slate-700">Click to choose image or drag & drop</p>
+          <p class="text-[11px] text-slate-500 mt-1">Supports PNG, JPG, JPEG, WEBP or Mobile Camera Shots</p>
+        </div>
+
+        <!-- OCR Scanning Progress Indicator (Hidden initially) -->
+        <div id="ocrProgressBar" class="hidden space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span id="ocrStatusText" class="flex items-center gap-2">
+              <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-twSaffron"></i> Scanning image characters...
+            </span>
+            <span id="ocrPercent" class="font-mono text-twSaffron">0%</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div id="ocrProgressFill" class="bg-twSaffron h-2 rounded-full w-0 transition-all duration-200"></div>
+          </div>
+        </div>
+
+        <!-- Extracted Text Preview -->
+        <div id="ocrResultWrap" class="hidden space-y-2">
+          <label class="text-xs font-bold text-slate-700 block">Extracted Text (Review & Edit if needed):</label>
+          <textarea id="ocrExtractedOutput" rows="5" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-twNavy"></textarea>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closeOcrModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+        <button id="applyOcrBtn" onclick="applyOcrTextToTest()" disabled class="px-5 py-2 bg-twSaffron hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i> Use Extracted Text in Test
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-twNavy text-slate-400 text-xs py-8 border-t border-slate-800 mt-12 no-print">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="space-y-2">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded bg-twSaffron text-white font-bold flex items-center justify-center text-xs">TW</span>
+          <span class="text-sm font-bold text-white tracking-wider">TYPING WALLAH</span>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          Engineered for high-stakes government typing test aspirants in India. Practice with actual exam criteria, picture recognition, and live accuracy engines.
+        </p>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs mb-2">Government Tests</h4>
+        <ul class="space-y-1 text-[11px]">
+          <li><a href="#" class="hover:text-twSaffron">SSC CGL / CHSL Typing Exam</a></li>
+          <li><a href="#" class="hover:text-twSaffron">Railway NTPC Skill Test</a></li>
+          <li><a href="#" class="hover:text-twSaffron">Allahabad High Court ARO/RO</a></li>
+          <li><a href="#" class="hover:text-twSaffron">CPCT Madhya Pradesh</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs mb-2">Features</h4>
+        <ul class="space-y-1 text-[11px]">
+          <li><a href="#" class="hover:text-twSaffron">Extract Text by Picture (OCR)</a></li>
+          <li><a href="#" class="hover:text-twSaffron">Backspace Lock Exam Mode</a></li>
+          <li><a href="#" class="hover:text-twSaffron">Half & Full Mistake Breakdown</a></li>
+          <li><a href="#" class="hover:text-twSaffron">Printable Typing Scorecard</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs mb-2">Typing Baba Clone Replica</h4>
+        <p class="text-[11px] text-slate-400">
+          Inspired by typingbaba.com with modernized Tailwind UI, in-browser Tesseract OCR, and instant responsive feedback.
+        </p>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 mt-6 pt-4 border-t border-slate-800 text-center text-[11px] text-slate-500">
+      &copy; 2026 Typing Wallah. All rights reserved. Registered for skill preparation.
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // PRE-LOADED PASSAGES
+    const PASSAGES = {
+      utopia: "Utopia is a work of fiction and socio-political satire by Thomas More written in Latin and published in 1516. The book is a frame narrative primarily depicting a fictional island society and its religious social and political customs. Many aspects of More's description of Utopia are reminiscent of life in monasteries. It is considered one of the foremost humanist texts of the northern Renaissance.",
+      philosophy: "The problems of philosophy examine how knowledge is acquired and verified in human consciousness. Bertrand Russell argues that we must distinguish between appearance and reality if we are to understand what exists in the physical world independently of our personal sensory perception and biases.",
+      dostoevsky: "On an exceptionally hot evening early in July a young man came out of the garret in which he lodged in S. Place and walked slowly as though in hesitation towards K. bridge. He had successfully avoided meeting his landlady on the staircase. His garret was under the roof of a high five-storied house and was more like a cupboard than a room.",
+      mobydick: "Call me Ishmael. Some years ago never mind how long precisely having little or no money in my purse and nothing particular to interest me on shore I thought I would sail about a little and see the watery part of the world. It is a way I have of driving off the spleen and regulating the circulation.",
+      techcloud: "Cloud computing and artificial intelligence represent transformative technologies that have restructured the foundation of digital enterprise architecture. Through distributed clusters and neural processing pipelines data analytics operate at instantaneous latency and global scalability."
+    };
+
+    // STATE VARIABLES
+    let candidate = "Candidate";
+    let selectedDurationMinutes = 1.0;
+    let isExamMode = false;
+    let backspaceAllowed = true;
+    let highlightAllowed = true;
+    let soundEnabled = true;
+
+    let targetWords = [];
+    let currentWordIndex = 0;
+    let timerDurationSeconds = 60;
+    let remainingSeconds = 60;
+    let timerInterval = null;
+    let hasStartedTyping = false;
+
+    // METRICS TRACKING
+    let totalKeystrokes = 0;
+    let totalBackspaces = 0;
+    let wordResults = []; // stores { typed, target, status: 'correct'|'full-error'|'half-error' }
+
+    // WEB AUDIO SYNTHESIZER
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    function playKeySound(type = 'press') {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'press') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, now);
+          osc.frequency.linearRampToValueAtTime(110, now + 0.07);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.07);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('soundToggleBtn');
+      const icon = document.getElementById('soundIcon');
+      if (soundEnabled) {
+        btn.innerHTML = `<i id="soundIcon" data-lucide="volume-2" class="w-4 h-4 text-twSaffron"></i> Sound: ON`;
+      } else {
+        btn.innerHTML = `<i id="soundIcon" data-lucide="volume-x" class="w-4 h-4 text-slate-400"></i> Sound: OFF`;
+      }
+      lucide.createIcons();
+    }
+
+    // DURATION SELECTOR
+    function selectDuration(mins, btn) {
+      selectedDurationMinutes = mins;
+      document.querySelectorAll('.dur-btn').forEach(b => {
+        b.classList.remove('border-twSaffron', 'bg-orange-50', 'text-twSaffron', 'active-dur');
+        b.classList.add('border-slate-300');
+      });
+      btn.classList.add('border-twSaffron', 'bg-orange-50', 'text-twSaffron', 'active-dur');
+      btn.classList.remove('border-slate-300');
+    }
+
+    // SETTING TOGGLES
+    function setBackspace(enable) {
+      backspaceAllowed = enable;
+      const btnEn = document.getElementById('btn-backspace-en');
+      const btnDis = document.getElementById('btn-backspace-dis');
+      if (enable) {
+        btnEn.className = "px-2.5 py-1 text-xs rounded bg-emerald-600 text-white font-bold";
+        btnDis.className = "px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium";
+      } else {
+        btnDis.className = "px-2.5 py-1 text-xs rounded bg-red-600 text-white font-bold";
+        btnEn.className = "px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium";
+      }
+    }
+
+    function setHighlight(enable) {
+      highlightAllowed = enable;
+      const btnEn = document.getElementById('btn-highlight-en');
+      const btnDis = document.getElementById('btn-highlight-dis');
+      if (enable) {
+        btnEn.className = "px-2.5 py-1 text-xs rounded bg-twNavy text-white font-bold";
+        btnDis.className = "px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium";
+      } else {
+        btnDis.className = "px-2.5 py-1 text-xs rounded bg-slate-700 text-white font-bold";
+        btnEn.className = "px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium";
+      }
+    }
+
+    // TAB SELECTION: DEFAULT vs CUSTOM
+    function switchParagraphTab(tab) {
+      const defWrap = document.getElementById('default-passages-wrap');
+      const cusWrap = document.getElementById('custom-passages-wrap');
+      const btnDef = document.getElementById('tab-default-p');
+      const btnCus = document.getElementById('tab-custom-p');
+
+      if (tab === 'default') {
+        defWrap.classList.remove('hidden');
+        cusWrap.classList.add('hidden');
+        btnDef.className = "flex-1 py-1.5 text-xs font-bold rounded bg-twNavy text-white";
+        btnCus.className = "flex-1 py-1.5 text-xs font-medium rounded bg-slate-200 text-slate-700 hover:bg-slate-300";
+      } else {
+        defWrap.classList.add('hidden');
+        cusWrap.classList.remove('hidden');
+        btnCus.className = "flex-1 py-1.5 text-xs font-bold rounded bg-twNavy text-white";
+        btnDef.className = "flex-1 py-1.5 text-xs font-medium rounded bg-slate-200 text-slate-700 hover:bg-slate-300";
+      }
+    }
+
+    // START TEST ENGINE
+    function startTypingApp(examMode) {
+      isExamMode = examMode;
+      const nameInput = document.getElementById('candidateName').value.trim();
+      candidate = nameInput || "Aspirant " + Math.floor(1000 + Math.random() * 9000);
+
+      // Enforce Exam rules if Exam Mode chosen
+      if (isExamMode) {
+        backspaceAllowed = false;
+        setBackspace(false);
+      }
+
+      // Determine text source
+      let sourceText = "";
+      const isCustomTab = !document.getElementById('custom-passages-wrap').classList.contains('hidden');
+      const customText = document.getElementById('customPassageText').value.trim();
+
+      if (isCustomTab && customText.length > 20) {
+        sourceText = customText;
+      } else {
+        const sel = document.getElementById('defaultPassageSelect').value;
+        sourceText = PASSAGES[sel] || PASSAGES.utopia;
+      }
+
+      // Repeat words if needed so text never runs dry
+      let words = sourceText.replace(/\s+/g, ' ').trim().split(' ');
+      while (words.length < 350) {
+        words = words.concat(words);
+      }
+      targetWords = words;
+      currentWordIndex = 0;
+      wordResults = [];
+      totalKeystrokes = 0;
+      totalBackspaces = 0;
+      hasStartedTyping = false;
+
+      timerDurationSeconds = Math.round(selectedDurationMinutes * 60);
+      remainingSeconds = timerDurationSeconds;
+
+      // Update Arena Header
+      document.getElementById('activeCandidateName').textContent = candidate;
+      document.getElementById('timerDisplay').textContent = formatSeconds(remainingSeconds);
+      document.getElementById('grossWpmLive').textContent = "0";
+      document.getElementById('accuracyLive').textContent = "100";
+      document.getElementById('examModeBadge').textContent = isExamMode ? "Exam Mode" : "Practice Mode";
+      document.getElementById('examModeBadge').className = isExamMode ? "ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-600 text-white" : "ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-600 text-white";
+      document.getElementById('backspaceStatus').textContent = backspaceAllowed ? "Backspace: Enabled" : "Backspace: Locked (Exam)";
+      document.getElementById('backspaceStatus').className = backspaceAllowed ? "text-[11px] font-bold text-emerald-600" : "text-[11px] font-bold text-red-600";
+
+      // Render Words into passageContainer
+      renderPassageWords();
+
+      // Show Arena, Hide Others
+      document.getElementById('config-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('arena-screen').classList.remove('hidden');
+
+      const input = document.getElementById('typingInput');
+      input.value = "";
+      input.disabled = false;
+      input.focus();
+    }
+
+    function renderPassageWords() {
+      const container = document.getElementById('passageContainer');
+      container.innerHTML = "";
+
+      targetWords.forEach((word, idx) => {
+        const span = document.createElement('span');
+        span.id = `w-${idx}`;
+        span.className = "word word-pending";
+        span.textContent = word;
+        container.appendChild(span);
+      });
+
+      updatePassageHighlights();
+    }
+
+    function updatePassageHighlights() {
+      if (!highlightAllowed) return;
+
+      const total = targetWords.length;
+      document.getElementById('wordsProgress').textContent = `Word ${currentWordIndex + 1} of ${total}`;
+
+      // Highlight active word
+      const prevActive = document.querySelector('.word-active');
+      if (prevActive) prevActive.classList.remove('word-active');
+
+      const currentSpan = document.getElementById(`w-${currentWordIndex}`);
+      if (currentSpan) {
+        currentSpan.classList.add('word-active');
+        // Auto scroll to view active word in center
+        currentSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // TYPING INPUT EVENT LISTENER
+    const typingInput = document.getElementById('typingInput');
+    
+    typingInput.addEventListener('keydown', (e) => {
+      // Start timer on first keystroke
+      if (!hasStartedTyping && e.key.length === 1) {
+        hasStartedTyping = true;
+        startTimer();
+      }
+
+      // Handle Backspace Restriction
+      if (e.key === 'Backspace') {
+        totalBackspaces++;
+        if (!backspaceAllowed) {
+          e.preventDefault();
+          playKeySound('error');
+          return;
+        }
+      }
+
+      // Space or Enter commits the current word
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        const typedVal = typingInput.value.trim();
+        if (typedVal.length === 0) return;
+
+        commitWord(typedVal);
+        typingInput.value = "";
+        playKeySound('press');
+        return;
+      }
+
+      if (e.key.length === 1) {
+        totalKeystrokes++;
+        playKeySound('press');
+      }
+    });
+
+    typingInput.addEventListener('input', () => {
+      updateLiveMetrics();
+    });
+
+    function commitWord(typedWord) {
+      const targetWord = targetWords[currentWordIndex];
+      const span = document.getElementById(`w-${currentWordIndex}`);
+      
+      let status = 'correct';
+      if (typedWord === targetWord) {
+        status = 'correct';
+        if (span) {
+          span.className = 'word word-correct';
+        }
+      } else {
+        // Evaluate full error vs half error (Spelling / Case error is half, complete mismatch is full)
+        if (typedWord.toLowerCase() === targetWord.toLowerCase()) {
+          status = 'half-error'; // Capitalization error
+          if (span) span.className = 'word word-half-error';
+        } else if (levenshteinDistance(typedWord, targetWord) <= 2) {
+          status = 'half-error'; // Minor typo
+          if (span) span.className = 'word word-half-error';
+        } else {
+          status = 'full-error'; // Completely incorrect word
+          if (span) span.className = 'word word-full-error';
+        }
+      }
+
+      wordResults.push({
+        typed: typedWord,
+        target: targetWord,
+        status: status
+      });
+
+      currentWordIndex++;
+      updatePassageHighlights();
+      updateLiveMetrics();
+    }
+
+    // LIVE SPEED & ACCURACY COMPUTATION
+    function updateLiveMetrics() {
+      const timeElapsedSeconds = Math.max(1, timerDurationSeconds - remainingSeconds);
+      const minutes = timeElapsedSeconds / 60;
+
+      // 5 Keystrokes = 1 Word standard
+      const grossWpm = Math.round((totalKeystrokes / 5) / minutes) || 0;
+      
+      let correctWordsCount = wordResults.filter(w => w.status === 'correct').length;
+      let totalAttempted = wordResults.length;
+      let accuracy = totalAttempted === 0 ? 100 : Math.round((correctWordsCount / totalAttempted) * 100);
+
+      document.getElementById('grossWpmLive').textContent = grossWpm;
+      document.getElementById('accuracyLive').textContent = accuracy;
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        document.getElementById('timerDisplay').textContent = formatSeconds(remainingSeconds);
+        updateLiveMetrics();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          finishTest();
+        }
+      }, 1000);
+    }
+
+    function formatSeconds(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function submitTestEarly() {
+      if (confirm("Are you sure you want to finish and view your scorecard now?")) {
+        // Commit remaining word in the input box if typed
+        const remainingInput = typingInput.value.trim();
+        if (remainingInput.length > 0) {
+          commitWord(remainingInput);
+        }
+        clearInterval(timerInterval);
+        finishTest();
+      }
+    }
+
+    function resetTest() {
+      clearInterval(timerInterval);
+      document.getElementById('arena-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('config-screen').classList.remove('hidden');
+    }
+
+    // CALCULATE FINAL SCORECARD ACCORDING TO TYPING BABA & GOVT FORMULAS
+    function finishTest() {
+      document.getElementById('typingInput').disabled = true;
+
+      const durationMinutes = (timerDurationSeconds - remainingSeconds) / 60 || (timerDurationSeconds / 60);
+      
+      // Standard Metrics
+      const totalWordsTyped = wordResults.length;
+      const fullMistakes = wordResults.filter(w => w.status === 'full-error').length;
+      const halfMistakes = wordResults.filter(w => w.status === 'half-error').length;
+      const correctWords = wordResults.filter(w => w.status === 'correct').length;
+
+      // Method 1: Gross & Net WPM
+      const grossWpm = Math.round((totalKeystrokes / 5) / durationMinutes) || 0;
+      const totalMistakesCount = fullMistakes + halfMistakes;
+      const errorRateWpm = (totalMistakesCount / durationMinutes);
+      const netWpm = Math.max(0, Math.round(grossWpm - errorRateWpm));
+      const accuracyPct = totalWordsTyped > 0 ? Math.round((correctWords / totalWordsTyped) * 100) : 0;
+
+      // Method 2: SSC/Court 5% Ignorable Allowance Rule
+      const equivalentMistakes = fullMistakes + (halfMistakes * 0.5);
+      const fivePercentLimit = Math.round(totalWordsTyped * 0.05 * 10) / 10;
+      const netPenalizedMistakes = Math.max(0, Math.round((equivalentMistakes - fivePercentLimit) * 10) / 10);
+
+      // Fill in Result DOM
+      document.getElementById('resCandidateName').textContent = candidate;
+      document.getElementById('resTimestamp').textContent = new Date().toLocaleString();
+      document.getElementById('resDuration').textContent = `${(durationMinutes).toFixed(1)} Minutes`;
+
+      document.getElementById('resNetWpm').textContent = netWpm;
+      document.getElementById('resGrossWpm').textContent = grossWpm;
+      document.getElementById('resAccuracy').textContent = `${accuracyPct}%`;
+
+      // Pass/Fail based on standard 35 WPM @ 90% accuracy benchmark
+      const passed = netWpm >= 35 && accuracyPct >= 90;
+      const statusBadge = document.getElementById('resExamStatus');
+      if (passed) {
+        statusBadge.textContent = "QUALIFIED / PASS";
+        statusBadge.className = "text-2xl font-black text-emerald-700 my-2";
+      } else {
+        statusBadge.textContent = "NOT QUALIFIED";
+        statusBadge.className = "text-2xl font-black text-red-600 my-2";
+      }
+
+      // Method 1 Fields
+      document.getElementById('m1TotalWords').textContent = totalWordsTyped;
+      document.getElementById('m1TotalKeystrokes').textContent = totalKeystrokes;
+      document.getElementById('m1Errors').textContent = totalMistakesCount;
+      document.getElementById('m1Backspaces').textContent = totalBackspaces;
+
+      // Method 2 Fields
+      document.getElementById('m2FullMistakes').textContent = fullMistakes;
+      document.getElementById('m2HalfMistakes').textContent = halfMistakes;
+      document.getElementById('m2TotalMistakes').textContent = equivalentMistakes;
+      document.getElementById('m2Ignorable').textContent = `${fivePercentLimit} words`;
+      document.getElementById('m2NetMistakes').textContent = netPenalizedMistakes;
+
+      // Build Reviewed Paragraph Output
+      const reviewedBox = document.getElementById('reviewedPassageBox');
+      reviewedBox.innerHTML = "";
+      wordResults.forEach(item => {
+        const span = document.createElement('span');
+        span.className = "mr-2 inline-block";
+        if (item.status === 'correct') {
+          span.className += " text-emerald-700 font-semibold";
+          span.textContent = item.typed;
+        } else if (item.status === 'half-error') {
+          span.className += " text-blue-700 underline font-semibold";
+          span.title = `Target: ${item.target} | Typed: ${item.typed}`;
+          span.textContent = item.typed;
+        } else {
+          span.className += " text-red-600 line-through font-semibold";
+          span.title = `Target: ${item.target} | Typed: ${item.typed}`;
+          span.textContent = item.typed;
+        }
+        reviewedBox.appendChild(span);
+      });
+
+      // Show Result Screen
+      document.getElementById('arena-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // LEVENSHTEIN DISTANCE (For half-mistake detection)
+    function levenshteinDistance(s1, s2) {
+      const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+      for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
+      for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
+      for (let j = 1; j <= s2.length; j += 1) {
+        for (let i = 1; i <= s1.length; i += 1) {
+          const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+          track[j][i] = Math.min(
+            track[j][i - 1] + 1,
+            track[j - 1][i] + 1,
+            track[j - 1][i - 1] + indicator
+          );
+        }
+      }
+      return track[s2.length][s1.length];
+    }
+
+    // COPY SCORECARD CLIPBOARD
+    function copyScorecard() {
+      const text = `Typing Wallah - Scorecard\nCandidate: ${candidate}\nNet Speed: ${document.getElementById('resNetWpm').textContent} WPM\nGross Speed: ${document.getElementById('resGrossWpm').textContent} WPM\nAccuracy: ${document.getElementById('resAccuracy').textContent}\nStatus: ${document.getElementById('resExamStatus').textContent}\nGenerated on https://typingwallah.com`;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyScoreBtn');
+        btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+        lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = `<i data-lucide="share-2" class="w-4 h-4"></i> Copy Summary`;
+          lucide.createIcons();
+        }, 2000);
+      });
+    }
+
+    // ==========================================
+    // OCR IMAGE TEXT EXTRACTION (TESSERACT.JS)
+    // ==========================================
+    function openOcrModal() {
+      document.getElementById('ocrModal').classList.remove('hidden');
+    }
+
+    function closeOcrModal() {
+      document.getElementById('ocrModal').classList.add('hidden');
+    }
+
+    async function handleOcrImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const pBar = document.getElementById('ocrProgressBar');
+      const pFill = document.getElementById('ocrProgressFill');
+      const pText = document.getElementById('ocrPercent');
+      const statusText = document.getElementById('ocrStatusText');
+      const resultWrap = document.getElementById('ocrResultWrap');
+      const outputText = document.getElementById('ocrExtractedOutput');
+      const applyBtn = document.getElementById('applyOcrBtn');
+
+      pBar.classList.remove('hidden');
+      resultWrap.classList.add('hidden');
+      applyBtn.disabled = true;
+
+      try {
+        const worker = await Tesseract.createWorker('eng');
+        
+        const ret = await worker.recognize(file, {}, {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const progress = Math.round(m.progress * 100);
+              pFill.style.width = `${progress}%`;
+              pText.textContent = `${progress}%`;
+              statusText.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-twSaffron"></i> Recognizing characters (${progress}%)...`;
+              lucide.createIcons();
+            }
+          }
+        });
+
+        // Clean up extracted OCR text
+        let cleanText = ret.data.text
+          .replace(/\r?\n|\r/g, ' ')     // replace linebreaks with space
+          .replace(/[^a-zA-Z0-9.,'"?!;:\- ]/g, '') // remove strange artifacts
+          .replace(/\s+/g, ' ')          // collapse extra spaces
+          .trim();
+
+        if (!cleanText || cleanText.length < 10) {
+          cleanText = "Could not extract clear words. Please ensure the image is bright, flat, and legible.";
+        }
+
+        outputText.value = cleanText;
+        resultWrap.classList.remove('hidden');
+        applyBtn.disabled = false;
+        statusText.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i> Extraction Complete!`;
+        lucide.createIcons();
+
+        await worker.terminate();
+      } catch (err) {
+        alert("OCR processing failed: " + err.message);
+        pBar.classList.add('hidden');
+      }
+    }
+
+    function applyOcrTextToTest() {
+      const text = document.getElementById('ocrExtractedOutput').value.trim();
+      if (!text) return;
+
+      switchParagraphTab('custom');
+      document.getElementById('customPassageText').value = text;
+      closeOcrModal();
+      alert("Extracted picture text applied! Click 'Start in Exam Mode' or 'Practice Mode' to begin.");
+    }
+
+    // DRAG & DROP FOR OCR MODAL
+    const dropzone = document.getElementById('ocrDropzone');
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.add('border-twSaffron', 'bg-orange-50'); });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.remove('border-twSaffron', 'bg-orange-50'); });
+    });
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        document.getElementById('ocrFileInput').files = files;
+        handleOcrImageSelect({ target: { files: files } });
+      }
+    });
+
+    // Initialize Lucide Icons on load
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
