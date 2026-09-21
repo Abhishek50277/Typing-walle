@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Wallah - Online Typing Test & Tutor in English</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tesseract.js for In-Browser OCR Picture Text Recognition -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            twNavy: '#0d2238',
+            twNavyDark: '#081624',
+            twNavyLight: '#183654',
+            twSaffron: '#ff7b00',
+            twGold: '#f59e0b',
+            twBlue: '#2563eb',
+            twGreen: '#16a34a',
+            twRed: '#dc2626',
+            twBg: '#f8fafc',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"Roboto Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #f1f5f9; }
+    .word { display: inline-block; margin-right: 0.45rem; padding: 2px 4px; border-radius: 3px; }
+    .word-active { background-color: #fef08a; border-bottom: 2px solid #ca8a04; }
+    .word-correct { color: #16a34a; }
+    .word-full-error { background-color: #fee2e2; color: #dc2626; text-decoration: line-through; }
+    .word-half-error { background-color: #dbeafe; color: #1d4ed8; text-decoration: underline; }
+    .word-pending { color: #475569; }
+    .no-select { -webkit-user-select: none; user-select: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-cert, #printable-cert * { visibility: visible; }
+      #printable-cert { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-twNavy text-white shadow-md border-b-4 border-twSaffron">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="location.reload()">
+        <div class="w-10 h-10 rounded-lg bg-twSaffron flex items-center justify-center font-extrabold text-white text-xl shadow-inner">
+          TW
+        </div>
+        <div>
+          <span class="text-2xl font-black tracking-tight text-white">TYPING<span class="text-twSaffron">WALLAH</span></span>
+          <span class="text-xs block text-slate-300 font-medium">India's Premier Typing Exam Software</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs md:text-sm">
+        <span class="bg-slate-800 px-3 py-1.5 rounded text-slate-300 font-mono flex items-center gap-1.5 border border-slate-700">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> SSC / RRB / CPCT Exam Verified
+        </span>
+        <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-1.5 bg-twNavyLight hover:bg-slate-700 text-slate-200 rounded text-xs flex items-center gap-1.5 border border-slate-700 transition">
+          <i id="soundIcon" data-lucide="volume-2" class="w-4 h-4 text-twSaffron"></i> Sound: ON
+        </button>
+      </div>
+    </div>
+    
+    <!-- SUB-NAV -->
+    <nav class="bg-twNavyDark text-xs text-slate-300 border-t border-slate-800 px-4">
+      <div class="max-w-7xl mx-auto flex items-center overflow-x-auto space-x-6 py-2 scrollbar-none">
+        <a href="#" class="hover:text-twSaffron font-semibold text-white">Home</a>
+        <a href="#" class="hover:text-twSaffron">English Typing Tutor</a>
+        <a href="#" class="hover:text-twSaffron font-semibold text-twSaffron">English Typing Test</a>
+        <a href="#" class="hover:text-twSaffron">Hindi Typing Test (Mangal/Kruti)</a>
+        <a href="#" class="hover:text-twSaffron">Government Rules (SSC/Court)</a>
+        <a href="#" class="hover:text-twSaffron">Typing Games</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+    
+    <!-- BREADCRUMB -->
+    <div class="text-xs text-slate-500 mb-4 flex items-center space-x-2">
+      <span>Home</span>
+      <span>/</span>
+      <span>Typing Test</span>
+      <span>/</span>
+      <span class="font-medium text-slate-700">English Typing Test [With Image OCR Scanner]</span>
+    </div>
+
+    <!-- VIEW 1: CONFIGURATION SCREEN -->
+    <section id="config-screen" class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden mb-6">
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <h1 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="keyboard" class="w-5 h-5 text-twSaffron"></i>
+          Online English Typing Test Setup
+        </h1>
+        <span class="text-xs bg-twSaffron/10 text-twSaffron px-2.5 py-1 rounded-full font-bold">Standard 5 Key-Depression Format</span>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Left Column: User & Test Settings -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Candidate Name</label>
+            <input type="text" id="candidateName" placeholder="Enter Your Name (e.g., Rahul Sharma)" 
+                   class="w-full px-3.5 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-twNavy text-sm font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Select Test Duration</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" onclick="selectDuration(0.5, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">30 Secs</button>
+              <button type="button" onclick="selectDuration(1, this)" class="dur-btn active-dur px-3 py-2 text-xs font-semibold rounded border border-twSaffron bg-orange-50 text-twSaffron transition">1 Minute</button>
+              <button type="button" onclick="selectDuration(2, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">2 Minutes</button>
+              <button type="button" onclick="selectDuration(5, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">5 Minutes</button>
+              <button type="button" onclick="selectDuration(10, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">10 Minutes</button>
+              <button type="button" onclick="selectDuration(15, this)" class="dur-btn px-3 py-2 text-xs font-semibold rounded border border-slate-300 hover:border-twSaffron hover:bg-orange-50 transition">15 Minutes</button>
+            </div>
+          </div>
+
+          <!-- Exam vs Practice Controls -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+            <span class="text-xs font-bold text-slate-600 block">EXAM RIGOR & ASSISTANCE</span>
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-700">Backspace Key:</span>
+              <div class="flex gap-2">
+                <button type="button" id="btn-backspace-en" onclick="setBackspace(true)" class="px-2.5 py-1 text-xs rounded bg-emerald-600 text-white font-bold">Enabled</button>
+                <button type="button" id="btn-backspace-dis" onclick="setBackspace(false)" class="px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium">Disabled (Exam)</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-700">Highlight & Auto-Scroll:</span>
+              <div class="flex gap-2">
+                <button type="button" id="btn-highlight-en" onclick="setHighlight(true)" class="px-2.5 py-1 text-xs rounded bg-twNavy text-white font-bold">Enabled</button>
+                <button type="button" id="btn-highlight-dis" onclick="setHighlight(false)" class="px-2.5 py-1 text-xs rounded bg-slate-200 text-slate-700 font-medium">Disabled</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Paragraph Selection & Picture OCR -->
+        <div class="space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Select Paragraph Source</label>
+              <span class="text-[11px] text-twBlue font-semibold cursor-pointer" onclick="openOcrModal()">
+                📷 Extract from Picture (OCR)
+              </span>
+            </div>
+            <div class="flex gap-2 mb-2">
+              <button type="button" id="tab-default-p" onclick="switchParagraphTab('default')" class="flex-1 py-1.5 text-xs font-bold rounded bg-twNavy text-white">Default Passages</button>
+              <button type="button" id="tab-custom-p" onclick="switchParagraphTab('custom')" class="flex-1 py-1.5 text-xs font-medium rounded bg-slate-200 text-slate-700 hover:bg-slate-300">Custom / Picture Text</button>
+            </div>
+
+            <!-- Default Paragraphs Dropdown -->
+            <div id="default-passages-wrap">
+              <select id="defaultPassageSelect" onchange="loadSelectedPassage()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-twNavy">
+                <option value="utopia">Thomas More - Utopia (Classic English Literature)</option>
+                <option value="philosophy">Bertrand Russell - The Problems of Philosophy</option>
+                <option value="dostoevsky">Fyodor Dostoevsky - Crime and Punishment Passage</option>
+                <option value="mobydick">Herman Melville - Moby Dick (Maritime Excerpt)</option>
+                <option value="techcloud">Modern Essay - Cloud Computing & Artificial Intelligence</option>
+              </select>
+            </div>
+
+            <!-- Custom / OCR Paragraph Box -->
+            <div id="custom-passages-wrap" class="hidden">
+              <textarea id="customPassageText" rows="4" placeholder="Type or paste your own custom text here, or click 'Upload Text by Picture' below to scan a photo..."
+                        class="w-full p-2.5 border border-slate-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-twNavy"></textarea>
+            </div>
+          </div>
+
+          <!-- Big Action Button for OCR -->
+          <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3 text-center">
+            <p class="text-xs font-semibold text-slate-700 mb-2">Got a printed test paper, book, or screenshot?</p>
+            <button type="button" onclick="openOcrModal()" class="w-full py-2 bg-twSaffron hover:bg-orange-600 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-sm transition">
+              <i data-lucide="camera" class="w-4 h-4"></i> Upload Text by Picture (In-Browser OCR)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap gap-3 items-center justify-between">
+        <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+          <i data-lucide="info" class="w-4 h-4 text-twBlue"></i> Timer will begin as soon as you press the first key.
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="startTypingApp(false)" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5">
+            <i data-lucide="play" class="w-4 h-4"></i> Practice Mode
+          </button>
+          <button type="button" onclick="startTypingApp(true)" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow transition flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4"></i> Start In Exam Mode
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: ACTIVE TYPING TEST ARENA (HIDDEN INITIALLY) -->
+    <section id="arena-screen" class="hidden space-y-4">
+      
+      <!-- Metrics Dashboard -->
+      <div class="bg-twNavy text-white rounded-xl p-4 shadow flex flex-wrap items-center justify-between gap-4 border border-slate-700">
+        <div class="flex items-center space-x-3">
+          <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+          <div>
+            <span class="text-xs text-slate-400 font-bold block uppercase tracking-wider">Candidate</span>
+            <span id="activeCandidateName" class="font-bold text-sm text-white">Candidate</span>
+          </div>
+          <span id="examModeBadge" class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-600">Exam Mode</span>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Time Left</span>
+            <span id="timerDisplay" class="font-mono text-2xl font-black text-twSaffron">01:00</span>
+          </div>
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Gross Speed</span>
+            <span class="font-mono text-2xl font-black text-white"><span id="grossWpmLive">0</span> <span class="text-xs font-normal text-slate-400">WPM</span></span>
+          </div>
+          <div class="text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Accuracy</span>
+            <span class="font-mono text-2xl font-black text-emerald-400"><span id="accuracyLive">100</span><span class="text-xs font-normal">%</span></span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="resetTest()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs font-semibold flex items-center gap-1 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restart
+          </button>
+          <button onclick="submitTestEarly()" class="px-4 py-1.5 bg-twRed hover:bg-red-700 text-white rounded text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Submit Test
+          </button>
+        </div>
+      </div>
+
+      <!-- Passage Display Window -->
+      <div class="bg-white border-2 border-slate-300 rounded-xl shadow-sm overflow-hidden">
+        <div class="bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs font-medium text-slate-600">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-4 h-4 text-twNavy"></i> Target Passage (Type word-by-word)
+          </span>
+          <span id="wordsProgress" class="font-mono font-bold text-slate-700">Word 1 of 350</span>
+        </div>
+
+        <div id="passageContainer" class="p-5 font-mono text-base md:text-lg leading-relaxed max-h-56 overflow-y-auto no-select bg-white scroll-smooth" style="scroll-behavior: smooth;">
+          <!-- Words will be dynamically injected here -->
+        </div>
+      </div>
+
+      <!-- Interactive Typing Box -->
+      <div class="bg-white border-2 border-twNavy rounded-xl p-4 shadow-md">
+        <div class="flex items-center justify-between mb-2">
+          <label for="typingInput" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-4 h-4 text-twSaffron"></i> Type here and press <span class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 text-slate-800 font-mono">SPACE</span> to advance words:
+          </label>
+          <span id="backspaceStatus" class="text-[11px] font-bold text-emerald-600">Backspace: Active</span>
+        </div>
+        <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="Click here and start typing. Timer begins automatically..."
+               class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-lg font-mono focus:border-twNavy focus:ring-0 focus:outline-none bg-slate-50">
+      </div>
+    </section>
+
+    <!-- VIEW 3: TYPING WALLAH OFFICIAL RESULT & SCORECARD (HIDDEN INITIALLY) -->
+    <section id="result-screen" class="hidden space-y-6">
+      <div id="printable-cert" class="bg-white rounded-xl shadow-lg border border-slate-300 p-6 md:p-8 space-y-6 relative overflow-hidden">
+        
+        <!-- Watermark -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none text-9xl font-black uppercase text-twNavy">
+          TYPING WALLAH
+        </div>
+
+        <!-- Scorecard Header -->
+        <div class="border-b-2 border-twNavy pb-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-lg bg-twSaffron flex items-center justify-center font-extrabold text-white text-2xl">
+              TW
+            </div>
+            <div>
+              <h2 class="text-2xl font-black tracking-tight text-twNavy">TYPING<span class="text-twSaffron">WALLAH</span> SCORECARD</h2>
+              <p class="text-xs text-slate-500 font-medium">Standard Government Examination Speed & Accuracy Evaluation Report</p>
+            </div>
+          </div>
+          <div class="text-right text-xs text-slate-600">
+            <p><strong>Candidate:</strong> <span id="resCandidateName" class="text-twNavy font-bold">Rahul</span></p>
+            <p><strong>Date & Time:</strong> <span id="resTimestamp" class="font-mono">--</span></p>
+            <p><strong>Duration:</strong> <span id="resDuration" class="font-mono">1 Min</span></p>
+          </div>
+        </div>
+
+        <!-- Primary Highlight Numbers -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Net Typing Speed</span>
+            <div class="text-4xl font-black text-blue-900 font-mono my-1" id="resNetWpm">0</div>
+            <span class="text-[11px] text-blue-600 font-medium">Words Per Minute (NWPM)</span>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Gross Speed</span>
+            <div class="text-4xl font-black text-slate-800 font-mono my-1" id="resGrossWpm">0</div>
+            <span class="text-[11px] text-slate-500 font-medium">GWPM (Total Key Depressions / 5)</span>
+          </div>
+
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Accuracy</span>
+            <div class="text-4xl font-black text-emerald-800 font-mono my-1" i
