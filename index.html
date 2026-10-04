@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BSF HCM Typing Test — 100 Practice Tests</title>
+<style>
+:root{--primary:#1769aa;--primary2:#0d5c94;--bg:#f4f7fa;--card:#fff;--text:#17202a;--muted:#687586;--border:#dbe2e8;--good:#16834b;--bad:#c62828;--shadow:0 3px 14px rgba(20,50,80,.08)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.nav{max-width:1120px;margin:auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-size:21px;font-weight:800;color:var(--primary);white-space:nowrap}
+.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.navlinks span{font-size:13px;color:#536273;padding:7px 9px;border-radius:6px}
+.wrap{max-width:1120px;margin:auto;padding:18px}
+.hero{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:25px;margin:4px 0}.sub{color:var(--muted);font-size:14px;margin:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select,button{font:inherit;padding:10px 12px;border:1px solid #cbd5df;border-radius:7px;background:#fff;color:var(--text)}
+button{font-weight:700;cursor:pointer}button:hover{filter:brightness(.97)}
+.primary{background:var(--primary);border-color:var(--primary);color:#fff}.danger{background:#fff5f5;border-color:#e5a5a5;color:#b21f1f}
+.timerbox{display:flex;justify-content:center;align-items:center;padding:12px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.timer{font-size:42px;line-height:1;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+.timer.warning{color:#c47a00}.timer.dangerTime{color:var(--bad)}
+.testmeta{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.badge{background:#eef6fc;color:var(--primary);padding:6px 9px;border-radius:6px;font-size:13px;font-weight:700}
+.instructions{background:#f7fafc;border:1px dashed #cfd9e2;padding:10px;border-radius:7px;color:#536273;font-size:13px}
+#passage{display:none}
+.typingArea{width:100%;min-height:310px;margin-top:14px;font-size:19px;line-height:1.7;padding:16px;border:2px solid #bfcbd6;border-radius:8px;resize:vertical;outline:none;background:#fff}
+.typingArea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(23,105,170,.10)}
+.active-only{display:none}.test-active .active-only{display:flex}.test-active .idle-only{display:none}
+.actions{display:flex;justify-content:center;margin-top:12px}
+#resultsCard{display:none}.finished #resultsCard{display:block}
+.resultHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.resultTitle{font-size:21px;font-weight:800}.ok{color:var(--good)}.bad{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.stat{background:#f7f9fb;border:1px solid var(--border);padding:12px;border-radius:8px}
+.stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.stat b{font-size:21px}
+.analysis{margin-top:14px;padding:14px;border-left:4px solid var(--primary);background:#f7fafc;border-radius:5px;line-height:1.6}
+.small{font-size:13px;color:var(--muted)}
+#result{font-weight:700}
+@media(max-width:700px){
+ .wrap{padding:10px}.nav{padding:10px}.navlinks{display:none}.brand{font-size:18px}
+ h1{font-size:21px}.card{padding:12px}.stats{grid-template-columns:repeat(2,1fr)}
+ .typingArea{min-height:260px;font-size:17px}.timer{font-size:36px}
+ .controls{width:100%}.controls select,.controls button{flex:1;min-width:120px}
+}
+
+/* Post-test character comparison */
+.comparison-card{margin-top:18px;background:var(--panel,#fff);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:18px}
+.comparison-card h3{margin:0 0 6px;font-size:18px}
+.comparison-legend{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 14px;font-size:12px;color:#64748b}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.legend-swatch{width:13px;height:13px;border-radius:4px;border:1px solid rgba(0,0,0,.08)}
+.legend-correct{background:#dcfce7}.legend-error{background:#fecaca}.legend-missing{background:#fde68a}.legend-extra{background:#ddd6fe}
+.compare-box{border:1px solid var(--border,#e5e7eb);border-radius:12px;background:#f8fafc;padding:14px;line-height:2;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.compare-label{font-weight:800;font-family:inherit;font-size:13px;color:#334155;margin-bottom:8px}
+.compare-char{border-radius:4px;padding:2px 1px}.compare-correct{background:#dcfce7;color:#166534}.compare-error{background:#fecaca;color:#991b1b;text-decoration:underline;text-decoration-thickness:2px}.compare-missing{background:#fde68a;color:#92400e;border:1px dashed #d97706}.compare-extra{background:#ddd6fe;color:#5b21b6;text-decoration:line-through}.compare-space{display:inline-block;min-width:.55em}.compare-empty{color:#94a3b8;font-style:italic}
+@media(max-width:700px){.comparison-card{padding:12px}.compare-box{font-size:12px;line-height:1.9;padding:10px}}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="nav">
+    <div class="brand">BSF HCM Typing Test</div>
+    <div class="navlinks"><span>Typing Test</span><span>Practice</span><span>Exam Mode</span><span>100 Tests</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <h1>English Typing Practice</h1>
+      <p class="sub">BSF HCM practice set • paper-to-screen mode • results shown after submission</p>
+    </div>
+    <div class="controls idle-only">
+      <select id="sel" aria-label="Select test"></select>
+      <select id="duration" aria-label="Test duration">
+        <option value="1">1 Minute</option>
+        <option value="2">2 Minutes</option>
+        <option value="3">3 Minutes</option>
+        <option value="5">5 Minutes</option>
+        <option value="10" selected>10 Minutes</option>
+        <option value="15">15 Minutes</option>
+        <option value="20">20 Minutes</option>
+      </select>
+      <button id="rand">Random Test</button>
+      <button id="start" class="primary">Start Test</button>
+    </div>
+  </section>
+
+  <div class="card">
+    <div class="timerbox"><div class="timer" id="timer">10:00</div></div>
+    <div class="testmeta">
+      <b>Test <span id="num">1</span> / 100</b>
+      <span class="badge" id="modeBadge">Paper → Screen</span>
+    </div>
+    <div class="instructions idle-only" style="margin-top:12px">
+      Select a test and duration, then press <b>Start Test</b>. During the test the passage is hidden so you can type from your printed/paper copy.
+    </div>
+    <div class="instructions active-only" style="margin-top:12px">
+      <b>Typing in progress.</b> The passage and live WPM/mistake statistics are intentionally hidden. Type from paper and use <b>Submit Test</b> when finished.
+    </div>
+    <div id="passage"></div>
+    <textarea id="inp" class="typingArea" disabled spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+      placeholder="Your typing area will activate when the test starts..."></textarea>
+    <div class="actions active-only"><button id="submit" class="danger">Submit Test</button></div>
+  </div>
+
+  <div class="card" id="resultsCard">
+    <div class="resultHeader">
+      <div class="resultTitle">Typing Session Analysis</div>
+      <div id="result"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Gross WPM</span><b id="gross">0.0</b></div>
+      <div class="stat"><span>Net WPM</span><b id="net">0.0</b></div>
+      <div class="stat"><span>Accuracy</span><b id="acc">0.0%</b></div>
+      <div class="stat"><span>Time Used</span><b id="used">0:00</b></div>
+      <div class="stat"><span>Characters Typed</span><b id="chars">0</b></div>
+      <div class="stat"><span>Correct Characters</span><b id="correctChars">0</b></div>
+      <div class="stat"><span>Mistakes</span><b id="mist">0</b></div>
+      <div class="stat"><span>Penalty</span><b id="penalty">0</b></div>
+    </div>
+    <div class="analysis" id="analysis">Finish a test to see the detailed analysis.</div>
+  </div>
+
+  <div class="card">
+    <div id="liveStatus" class="small">Ready. Choose a test and duration.</div>
+    <p class="small">Practice simulator. The exact implementation of official BSF examination software may differ.</p>
+  </div>
+
+  <div class="card comparison-card" id="comparisonPreview" style="display:none">
+    <h3>Typing Preview — Error Highlighting</h3>
+    <div class="comparison-legend">
+      <span class="legend-item"><span class="legend-swatch legend-correct"></span>Correct</span>
+      <span class="legend-item"><span class="legend-swatch legend-error"></span>Wrong</span>
+      <span class="legend-item"><span class="legend-swatch legend-missing"></span>Missing</span>
+      <span class="legend-item"><span class="legend-swatch legend-extra"></span>Extra</span>
+    </div>
+    <div class="compare-box">
+      <div class="compare-label">What you typed</div>
+      <div id="typedPreview" class="compare-empty">No typing recorded.</div>
+    </div>
+    <div class="compare-box" style="margin-top:10px">
+      <div class="compare-label">Correct passage</div>
+      <div id="correctPreview" class="compare-empty">No passage available.</div>
+    </div>
+  </div>
+</div>
+<script>
+const TESTS=[{"id": 1, "text": "The skill of typing has evolved from a specialized mechanical task into a fundamental pillar of modern communication and productivity that defines how we interact with the world around us. In our current digital landscape, the ability to translate thoughts into text quickly and accurately is essential for everything from professional correspondence and academic research to personal social interaction and creative expression. Mastering the keyboard through the dedicated practice of touch typing allows an individual to move past the physical limitations of the hardware, enabling a seamless flow of ideas directly onto the screen without the distraction of looking down at their hands. This proficiency not only saves a significant amount of time over the course of a day but also reduces the cognitive load required to operate a computer, letting the user focus entirely on the quality, tone, and creativity of their message rather than the location of individual letters. As we continue to integrate technology into every aspect of our lives, typing remains the primary bridge between human intent and digital execution, serving as a vital literacy skill that empowers people to navigate the information age with confidence and ease. Beyond mere speed, the art of typing involves a deep connection between the mind and the muscles of the fingers, creating a rhythmic movement that can become almost meditative when a writer is in a state of flow. This physical connection to language allows for a unique form of reflection where the speed of the fingers matches the speed of thought, ensuring that no insight is lost in the transition from brain to binary code. Even as voice recognition technology improves, typing offers a level of privacy, precision, and quiet focus that speaking aloud cannot replicate, making it an irreplaceable tool for those who work in shared spaces or handle sensitive information. The history of the keyboard itself, moving from the heavy mechanical levers of the early twentieth century to the haptic glass of modern smartphones, mirrors the rapid advancement of human civilization and our constant desire for faster and more efficient ways to share knowledge. By investing time in learning proper form and ergonomics, a typist protects their long term health while gaining a superpower that increases their value in the workplace and their ability to stay connected with friends and family across the globe. Whether one is coding complex software, drafting a heartfelt letter, or simply searching for answers to life's many questions, the humble act of typing serves as the foundational interface of the modern era. It is a skill that bridges generations, allowing an older professional to mentor a young student and enabling global collaborations that were once thought impossible. As digital devices become even more portable and integrated into our clothing and surroundings, the fundamental concept of character input remains the gold standard for accuracy. Even the layout of the keys, which has remained largely unchanged for over a century, stands as a testament to the enduring nature of this human machine interface. Learning to type well is not just about vocational training; it is about reclaiming time and reducing the friction between a person and their goals. Every keystroke is a choice and every sentence is a step toward a more connected future where ideas are the most valuable currency. By honing this craft, we ensure that our digital voices are heard clearly and that our contributions to the global conversation are limited only by our imaginations rather than our technical abilities. The impact of high speed typing is felt most deeply during intense periods of work where deadlines are tight and the pressure to perform is high, as the skilled typist can produce high volumes of text without the physical fatigue that plagues those who hunt and peck. This efficiency ripples outward, affecting overall organizational productivity and personal well being."}, {"id": 2, "text": "Eating a balanced and healthy diet is one of the most important things you can do to take care of your body and mind. In our busy world, it is often tempting to reach for fast food or prepackaged snacks because they are convenient and taste good. However, what we put into our bodies acts as fuel, and the quality of that fuel determines how well we can perform our daily tasks. Understanding the basics of nutrition and making small, consistent changes can lead to a much longer and happier life. When we talk about healthy eating, we do not mean strict diets that leave you feeling hungry or unhappy. Instead, it is about finding a balance that provides your body with the vitamins and minerals it needs to stay strong and fight off illness One of the main benefits of healthy eating is the boost in energy levels. Many people rely on sugary drinks or caffeine to get through the day, but these often lead to a crash later on. Complex carbohydrates, such as whole grains, oats, and brown rice, release energy slowly throughout the day. This means you can stay focused at work or school without feeling tired in the afternoon. Along with energy, a good diet helps with weight management. Maintaining a healthy weight reduces the pressure on your heart and joints, making it easier to stay active as you get older. By choosing whole foods over processed ones, you naturally consume fewer calories while feeling more satisfied. Physical health is only one part of the story, as nutrition also plays a huge role in mental well-being. Recent studies have shown that there is a strong connection between the gut and the brain. Eating plenty of fruits, vegetables, and healthy fats can improve your mood and reduce feelings of stress. Foods rich in omega three fatty acids, such as fish or walnuts, are particularly good for brain health and memory. When you eat well, you are likely to sleep better, which in turn helps you handle the challenges of daily life with a calmer and more positive attitude. It is amazing how much a simple change in your meals can change the way you see the world. Another critical reason to focus on healthy eating is the prevention of long term diseases. A diet high in salt, sugar, and saturated fats is a leading cause of heart disease, type two diabetes, and high blood pressure. By filling your plate with colorful vegetables and lean proteins, you are building a defense system for your body. Many vegetables contain antioxidants that protect your cells from damage. Over time, these healthy choices add up, significantly lowering your risk of ending up in the hospital. It is much easier to prevent health problems through good food now than it is to treat them with medicine later in life. For many people, the biggest challenge to healthy eating is the cost or the time required for cooking. However, eating well does not have to be expensive or complicated. Buying seasonal produce is often much cheaper than buying out of season items. Additionally, staple foods like beans, lentils, and eggs are very affordable and packed with nutrition. Preparing meals at home also gives you complete control over the ingredients, allowing you to avoid hidden sugars and excessive salt that are common in restaurant food. You can start by making simple swaps, like choosing water over soda or fruit over a candy bar. These small steps are much more effective than trying to change everything at once Healthy eating is also a wonderful way to bring people together. Sharing a home cooked meal with friends or family creates a sense of community and joy. It provides an opportunity to slow down and appreciate the flavors of fresh food. Teaching children about nutrition from a young age is one of the greatest gifts a parent can give. When kids learn to enjoy a variety of foods, they develop habits that will keep them healthy for the rest of their lives. It is about creating a culture of wellness that values quality and balance over quick fixes and fads."}, {"id": 3, "text": "This disclosure encouraged a huge wave of litigation, and even the formation of something called the National Science Panel of scientists in the relevant fields appointed by federal judge Samuel Pointer, to whom thousands of these cases had been sent. After years of sifting through enormous boxes of documents, the panel concluded that there was no evidence of any damage caused by these implants. However, that there was no evidence of such damage is not the same as there being evidence that there was no such damage. Nor was the possibility ever seriously considered that leakage from these implants might prompt a serious reaction in some patients. Sadly, after years of litigation and millions of dollars spent on all this, we still really don’t know the truth. The leading US case on the admissibility of expert testimony is Daubert v. Merrell Dow Pharmaceuticals (1993). It set the current standard by which US judges assess whether proffered expert testimony is good enough for a jury to hear. The drug at issue in this case was Bendectin, prescribed for morning sickness. The plaintiffs believed that this dru g caused limb - red uct io n bir t h def ect s; th e manu f act ur ers den ied th is. Merr ell had alread y withdrawn the drug from the US market in 1984 – not admitting that it was in any way damaging, but citing the costs of litigation as making it no longer worth selling in the US. Dr Done, expert witness for th e pl a i n t i f f s , ma i n t a i n e d th a t th e r e wa s ev i d e n c e th a t Be n d e c t i n ca u s e d bi r t h de f e c t s . Th e manufacturers strenuously denied this, and stressed that they had no fewer than thirty studies published in peer-reviewed journals that showed no such link. The Supreme Court found that there wasn’t the evidence to show the plaintiffs’ case good enough for their expert to be heard by a jury. Moreover, they made ‘peer review and publication’ one indication that expert evidence is ‘scientific knowledge’, and therefore good enough to be admitted – a criterion still used. Subsequent discussion raised questions about the independence of some of the ‘peer-reviewed publications’ cited in the case. In his final ruling in Daubert, Judge Kozinski argued that peerreviewed p
